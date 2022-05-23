@@ -11,6 +11,9 @@ import routes from "../routes";
 import { faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FatLink } from "../components/shared";
+import { useForm } from "react-hook-form";
+import { gql, useMutation } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
 
 const HeaderContainer = styled.div`
   display: flex;
@@ -24,7 +27,54 @@ const Subtitle = styled(FatLink)`
   margin-top: 10px;
 `;
 
+const CREATE_ACCOUNT_MUTATION = gql`
+  mutation createAccount(
+    $firstName: String!
+    $lastName: String
+    $username: String!
+    $email: String!
+    $password: String!
+  ) {
+    createAccount(
+      firstName: $firstName
+      lastName: $lastName
+      username: $username
+      email: $email
+      password: $password
+    ) {
+      ok
+      error
+    }
+  }
+`;
+
 function SignUp() {
+  const navigate = useNavigate();
+  const onCompleted = (data) => {
+    const {
+      createAccount: { ok, error },
+    } = data;
+    if (!ok) {
+      return;
+    }
+    navigate(routes.home);
+  };
+  const [createAccount, { loading }] = useMutation(CREATE_ACCOUNT_MUTATION, {
+    onCompleted,
+  });
+  const { register, handleSubmit, errors, formState } = useForm({
+    mode: "onChange",
+  });
+  const onSubmitValid = (data) => {
+    if (loading) {
+      return;
+    }
+    createAccount({
+      variables: {
+        ...data,
+      },
+    });
+  };
   return (
     <AuthLayout>
       <PageTitle title="Sign Up"></PageTitle>
@@ -37,12 +87,50 @@ function SignUp() {
           <FacebookLogin ctx="Sign up With FaceBook"></FacebookLogin>
           <Seperator />
         </HeaderContainer>
-        <form>
-          <Input type="text" placeholder="Email" />
-          <Input type="text" placeholder="Name" />
-          <Input type="text" placeholder="Username" />
-          <Input type="password" placeholder="Password" />
-          <Button type="submit" value="Sign up" />
+        <form onSubmit={handleSubmit(onSubmitValid)}>
+          <Input
+            ref={register({
+              required: "First Name is required.",
+            })}
+            name="firstName"
+            type="text"
+            placeholder="First Name"
+          />
+          <Input
+            ref={register}
+            type="text"
+            placeholder="Last Name"
+            name="lastName"
+          />
+          <Input
+            ref={register({
+              required: "Email is required.",
+            })}
+            name="email"
+            type="text"
+            placeholder="Email"
+          />
+          <Input
+            ref={register({
+              required: "Username is required.",
+            })}
+            name="username"
+            type="text"
+            placeholder="Username"
+          />
+          <Input
+            ref={register({
+              required: "Password is required.",
+            })}
+            name="password"
+            type="password"
+            placeholder="Password"
+          />
+          <Button
+            type="submit"
+            value={loading ? "Loading..." : "Sign up"}
+            disabled={!formState.isValid || loading}
+          />
         </form>
       </FormBox>
       <ButtomBox

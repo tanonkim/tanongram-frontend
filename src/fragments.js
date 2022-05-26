@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const PHOTO_FRAGMENT = gql`
-  fragment PhotoFragement on Photo {
+  fragment PhotoFragment on Photo {
     id
     file
     likes

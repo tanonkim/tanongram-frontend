@@ -32,7 +32,10 @@ export const disableDarkMode = () => {
 };
 
 const httpLink = createHttpLink({
-  uri: "http://localhost:4000/graphql",
+  uri:
+    process.env.NODE_ENV === "production"
+      ? "https://tanongram-backend.herokuapp.com/graphql"
+      : "http://localhost:4000/graphql",
 });
 
 const authLink = setContext((_, { headers }) => {
